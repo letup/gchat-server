@@ -16,42 +16,6 @@ app.get('/', function(req, res) {
 	res.sendfile(__dirname + '/index.html');
 });
 
-app.post('/chatroom', function(req, res) {
-  var nickname = req.body.sponsorNickname;
-  var title = req.body.title;
-  var createDate = Date.now() / 1000 | 0;
-
-  if (!nickname || !title) {
-    res.json({}, 400);
-  }
-  
-  function generateId() {
-    var id = (Math.random() * 1000000 | 0)
-      .toString(36);
-    redisClient.sadd('ChatRoom.IDs', id, function(error, nonexist) {
-      if (!nonexist) {
-        generateId();
-      } else {
-        redisClient.hmset('ChatRoom.' + id, {
-          title: title,
-          createDate: createDate.toString()
-        }, function(error) {
-          redisClient.sadd('ChatRoom.Members.' + id, nickname, function(error, nonexist) {
-            res.json({
-              roomID: id,
-              shortlink: 'http://gchat.in/' + id,
-              token: 'TOKEN_NULL',
-              createDate: createDate,
-              serverAddress: '192.168.1.153:8000'
-            });
-          });
-        });
-      }
-    });
-  }
-  generateId();
-});
-
 app.get('/chatroom/:roomID' , function(req, res) {
   var roomID = req.params.roomID;
   
@@ -100,40 +64,6 @@ app.get('/chatroom/:roomID' , function(req, res) {
         res.json({chats: chats}, 200);
       });
     }
-  });
-});
-
-app.post('/chatroom/:roomID/join', function(req, res) {
-  var roomID = req.params.roomID;
-  var nickname = req.body.nickname;
-  
-  console.log(nickname + " want to join room " + roomID);
-  
-  if (!nickname) {
-    res.json({}, 400);
-  }
-  
-  redisClient.sismember('ChatRoom.IDs', roomID, function(error, exist) {
-    if (!exist) {
-      res.json({}, 404);
-    }
-    
-    redisClient.sadd('ChatRoom.Members.' + roomID, nickname, function(error, nonexist) {
-      // if (!nonexist) {
-      //   res.json({}, 409);
-      // } else {
-        redisClient.hmget('ChatRoom.' + roomID, ["createDate", "title"], function(error, result) {
-          res.json({
-            roomID: roomID,
-            shortlink: 'http://gchat.in/' + roomID,
-            token: 'TOKEN_NULL',
-            createDate: result[0],
-            serverAddress: '192.168.1.153:8000',
-            title: result[1]
-          });
-        });
-      // }
-    });
   });
 });
 
