@@ -6,8 +6,9 @@ var crypto = require('crypto');
 var util = require('util');
 var ursa = require('ursa');
 var fs = require('fs');
+var log = require('./log');
 
-var config = require('./config');
+var config = require('./master_config');
 
 var redisClient = require('redis')
   .createClient(config.redis.port, config.redis.address);
@@ -25,17 +26,22 @@ serverList.forEach(function(serverAddress) {
       .digest("hex");
     var keyPem = fs.readFileSync(__dirname + '/keys/' + md5 + '.pem');
     serverKeySlot[serverAddress] = ursa.createPrivateKey(keyPem);
+    log.info(util.format('Private key loaded for node server "%s"', serverAddress));
   } catch(e) {
-    console.log(util.format('WARNING: Cannot load private key for node server "%s"', serverAddress));
+    log.warning(util.format('Cannot load private key for node server "%s"', serverAddress));
   }
 });
 
-
+var lastUsedServerIndex = 0;
 function pickServer(sourceIP) {
-  return serverList[0];
+  if (lastUsedServerIndex == serverList.length) {
+    lastUsedServerIndex = 0;
+  }
+  return serverList[lastUsedServerIndex++];
 }
 
 function signature(serverAddress, actionString) {
+  log.info(util.format('Signature action "%s" for node server "%s"', actionString, serverAddress));
   var serverkey = serverKeySlot[serverAddress];
   var signature = serverkey.hashAndSign('sha256', actionString, 'utf8', 'base64');
   return signature;
@@ -65,6 +71,7 @@ app.post('/chatroom', function(req, res) {
 
   generateNewRoomId(function(id) {
     var serverAddress = pickServer(req.ip);
+    log.info(util.format('User "%s" request to create new chat room "%s", assigning node server "%s"', nickname, title, serverAddress))
     var newRoomInfo = {
       title: title,
       createDate: createDate.toString(),
@@ -89,7 +96,7 @@ app.post('/chatroom/:roomId/members', function(req, res) {
   var roomId = req.params.roomId;
   var nickname = req.body.nickname;
 
-  console.log(util.format('"%s" request to join room "%s"', nickname, roomId));
+  log.info(util.format('User "%s" request to join room "%s"', nickname, roomId));
 
   if (!nickname) {
     res.json({}, 400);
@@ -98,13 +105,13 @@ app.post('/chatroom/:roomId/members', function(req, res) {
 
   redisClient.exists('ChatRoom.' + roomId, function(error, exist) {
     if (!exist) {
-      console.log(util.format('Room "%s" does not exist!', roomId));
+      log.info(util.format('Room "%s" does not exist!', roomId));
       res.json({}, 404);
       return;
     } else {
       redisClient.sadd('ChatRoom.Members.' + roomId, nickname, function(error, nonexist) {
         if (!nonexist) {
-          console.log(util.format('"%s" already in room "%s", reject.', nickname, roomId));
+          log.warning(util.format('User "%s" already in room "%s", reject.', nickname, roomId));
           res.json({}, 409);
         } else {
           redisClient.hmget('ChatRoom.' + roomId, ['createDate', 'title', 'serverAddress'], function(error, result) {
@@ -128,7 +135,7 @@ app.post('/chatroom/:roomId/members', function(req, res) {
 });
 
 redisClient.on("error", function(err) {
-  console.log("Redis client error: " + err);
+  log.error("Redis client error: " + err);
 });
 
 app.get('/', function(req, res) {

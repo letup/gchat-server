@@ -1,15 +1,15 @@
 {
   "listen":{
     "address":"0.0.0.0",
-    "port":"8000"
+    "port":"8001"
   },
   "redis":{
     "address":"127.0.0.1",
     "port":"6379"
   },
   "serverList":[
-    "node-jpn.gchat.in:8000", 
-    "node-us.gchat.in:8000", 
-    "node-cn.gchat.in:8000"
+    "jpn.node.gchat.in:8000", 
+    "us.node.gchat.in:8000", 
+    "cn.node.gchat.in:8000"
   ]
 }
