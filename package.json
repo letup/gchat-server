@@ -1,0 +1,11 @@
+{
+    "name": "gchat-server"
+  , "version": "1.0"
+  , "private": true
+  , "dependencies": {
+      "express": "*"
+    , "redis": "*"
+    , "socket.io": "*"
+    , "ursa": "*"
+  }
+}
