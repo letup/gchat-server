@@ -77,7 +77,7 @@ app.get('/chatroom/:roomId' , function(req, res) {
       endRange = -1;
     }
     
-    log.info('Fetch room "' + roomId + '" messages, query: startID=' + startID + ',endID=' + endID + ',count=' + count);
+    log.info('Fetch room "' + roomId + '" messages, query: startID=' + startID + ',endID=' + endID + ',count=' + count + '. lrange: start=' + startRange + ',end=' + endRange);
     
     redisClient.lrange('ChatRoom.Messages.' + roomId, startRange, endRange, function(error, result) {
       var chats = result.map(function(item) { return JSON.parse(item); });
