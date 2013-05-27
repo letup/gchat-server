@@ -43,6 +43,7 @@ app.get('/chatroom/:roomId' , function(req, res) {
   redisClient.sismember('ChatRoom.IDs', roomId, function(error, exist) {
     if (!exist) {
       res.json({}, 404);
+      return;
     }
   
     var count = parseInt(req.query.count, 10);
@@ -71,13 +72,13 @@ app.get('/chatroom/:roomId' , function(req, res) {
     } else if (count) {
       startRange = -count;
       endRange = -1;
-    } else if (startID) {
+    } else {
       startRange = startID || 0;
       endRange = -1;
-    } else {
-      res.json({}, 400);
-      return;
     }
+    
+    log.info('Fetch room "' + roomId + '" messages, query: startID=' + startID + ',endID=' + endID + ',count=' + count);
+    
     redisClient.lrange('ChatRoom.Messages.' + roomId, startRange, endRange, function(error, result) {
       var chats = result.map(function(item) { return JSON.parse(item); });
       res.json({chats: chats}, 200);
