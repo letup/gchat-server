@@ -5,7 +5,8 @@
   },
   "redis":{
     "address":"127.0.0.1",
-    "port":"6379"
+    "port":"6379",
+    "databaseId":1
   },
   "serverList":[
     "jpn.node.gchat.in:8000", 

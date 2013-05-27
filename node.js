@@ -18,6 +18,8 @@ io.set('log level', 0);
 var redisClient = require('redis')
   .createClient(config.redis.port, config.redis.address);
 
+redisClient.select(config.redis.databaseId);
+
 app.use(express.bodyParser());
 server.listen(config.listen.port, config.listen.address);
 
