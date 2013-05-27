@@ -53,23 +53,23 @@ app.get('/chatroom/:roomId' , function(req, res) {
     var startRange;
     var endRange;
     
-    if (startID && endID) {
+    if (!isNaN(startID) && !isNaN(endID)) {
       if (endID - startID < 0) {
         res.json({}, 400);
       }
       startRange = startID;
       endRange = endID - 1;
-    } else if (startID && count) {
+    } else if (!isNaN(startID) && !isNaN(count)) {
       startRange = startID;
       endRange = startID + count - 1;
-    } else if (endID && count) {
+    } else if (!isNaN(endID) && !isNaN(count)) {
       startRange = endID - count;
       if (startRange < 0) startRange = 0;
       endRange = endID - 1;
-    } else if (endID) {
+    } else if (!isNaN(endID)) {
       startRange = 0;
       endRange = endID - 1;
-    } else if (count) {
+    } else if (!isNaN(count)) {
       startRange = -count;
       endRange = -1;
     } else {
