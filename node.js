@@ -81,7 +81,12 @@ app.get('/chatroom/:roomId/messages' , function(req, res) {
     log.info('Fetch room "' + roomId + '" messages, query: startID=' + startID + ',endID=' + endID + ',count=' + count + '. lrange: start=' + startRange + ',end=' + endRange);
     
     redisClient.lrange('ChatRoom.Messages.' + roomId, startRange, endRange, function(error, result) {
-      var chats = result.map(function(item) { return JSON.parse(item); });
+      var messageId = startRange;
+      var chats = result.map(function(item) { 
+         var message = JSON.parse(item); 
+         message.newid = messageId + 1;
+         messageId++;
+       });
       res.jsonp({chats: chats}, 200);
     });
   });
@@ -129,27 +134,22 @@ io.sockets.on('connection', function(socket) {
     socket.on('chat message', function(msg, callback) {
       log.info('User "' + nickname + '" send message in room "' + roomId + '": ' + msg.body);
       var now = Date.now() / 1000 | 0;
-      redisClient.llen('ChatRoom.Messages.' + roomId, function(error, expectMessageID) {
-        expectMessageID += 1;
-        var data = {
-          body: msg.body,
-          time: now,  
-          senderName: nickname,
-          type: 'chat',
-          id: expectMessageID
-        };
-        redisClient.rpush('ChatRoom.Messages.' + roomId, JSON.stringify(data), function(error, count) {
-          if (expectMessageID != count) {
-            info.error(util.format('New message ID is %d, message count is %d, conflict!', expectMessageID, count));
-          }
-          log.info('Room "' + roomId + '" now has ' + count + ' messages.');
-          if (callback) {
-            callback(count);
-          }
+      
+      var data = {
+        body: msg.body,
+        time: now,  
+        senderName: nickname,
+        type: 'chat',
+      };
+      redisClient.rpush('ChatRoom.Messages.' + roomId, JSON.stringify(data), function(error, count) {
+        log.info('Room "' + roomId + '" now has ' + count + ' messages.');
+        if (callback) {
+          callback(count);
+        }
 
-          socket.broadcast.to(roomId)
-            .emit('chat message', data);
-        });
+        data.id = count;
+        socket.broadcast.to(roomId)
+          .emit('chat message', data);
       });
     });
   });
