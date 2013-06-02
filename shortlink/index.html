@@ -7,12 +7,10 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <link rel="apple-touch-icon-precomposed" sizes="114x114" href="Icon@2x.png" />
   <link rel="apple-touch-icon-precomposed" sizes="57x57" href="Icon.png" />
-  <title></title>
+  <title>GChat</title>
   <link rel="stylesheet" href="./jm.css">
   <link rel="stylesheet" href="./custom.css">
-  <!-- Extra Codiqa features -->
   <link rel="stylesheet" href="./codiqa.ext.css">
-  <!-- jQuery and jQuery Mobile -->
   <script src="./jquery.min.js"></script>
   <script>
     $(document).on('mobileinit', function () {
@@ -46,7 +44,7 @@
     if (chats.length != 0) {
       var expectId = lastMessageId() + 1;
       if (chat.id != expectId) {
-        console.log('WARNING: Expect message id ' + expectId + ', real id ' + chat.id);
+        console.log('WARNING: Expected message id ' + expectId + ', received id ' + chat.id);
         return false;
       }
     }
@@ -97,41 +95,37 @@
     connectSocket();
   }
 
-  function loadUserInfo() {
-    userInfo = {
-      nickname: $.cookie('nickname' + chatRoomId),
-      signature: $.cookie('signature' + chatRoomId),
-      serverAddress: $.cookie('serverAddress' + chatRoomId),
-      title: $.cookie('title' + chatRoomId)
-    };
-  }
-
   $(function () {
-    loadUserInfo();
-
+    $.cookie.json = true;
+    userInfo = $.cookie('room|' + chatRoomId);
+    
     $('#join [data-role=button]').click(function () {
       var nickname = $('#nickname').val();
       $.post('http://gchat.in:8001/chatroom/' + chatRoomId + '/members', {nickname: nickname}, function (body) {
-        $.cookie('signature' + chatRoomId, body.signature, {expires: 10000});
-        $.cookie('serverAddress' + chatRoomId, body.serverAddress, {expires: 10000});
-        $.cookie('title' + chatRoomId, body.title, {expires: 10000});
-        $.cookie('nickname' + chatRoomId, nickname, {expires: 10000});
-
-        loadUserInfo();
-        getChatList();
+        userInfo = {
+          nickname: nickname,
+          signature: body.signature,
+          serverAddress: body.serverAddress,
+          title: body.title
+        };
+        
+        $.cookie('room|' + chatRoomId, userInfo, {expires: 365});
+        getChatList(0);
       });
     });
 
-    if (!userInfo.nickname) {
+    if (!userInfo) {
+      document.location.hash = '#join'
       $.get('http://gchat.in:8001/chatroom/' + chatRoomId, function (body) {
         $('#onlinePeople').html('Online users: ' + body.members.join(', '));
         $('.chatRoomTitle').html(body.title);
         $.mobile.initializePage();
       });
-      document.location.hash = '#join'
     } else {
       $('.chatRoomTitle').html(userInfo.title);
-      document.location.hash = '#chat'
+      if (!document.location.hash) {
+        document.location.hash = '#chat'
+      }
       getChatList(0, function() {
         $.mobile.initializePage();
       });
