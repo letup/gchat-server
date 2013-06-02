@@ -13,10 +13,12 @@
 
 #chatList li.sent-me .name {
   text-align: right;
+  clear: right;
 }
 
 #chatList li.sent-me .body {
   background-color: #9ed5ff;
+  float: right;
 }
 
 #chatList li .body {
