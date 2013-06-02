@@ -101,8 +101,10 @@
     
     $('#join [data-role=button]').click(function () {
       var nickname = $('#nickname').val();
-      $.post('http://gchat.in:8001/chatroom/' + chatRoomId + '/members', {nickname: nickname}, function (body, textStatus) {
+      $.post('http://gchat.in:8001/chatroom/' + chatRoomId + '/members', {nickname: nickname}, function (body, textStatus, c) {
+        console.log(body);
         console.log(textStatus);
+        console.log(c);
         
         userInfo = {
           nickname: nickname,
