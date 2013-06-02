@@ -21,8 +21,8 @@ app.use(function(req,res,next){
   res.header('Access-Control-Allow-Methods', 'POST, GET');
   next()
 });
+app.enable("jsonp callback");
 server.listen(config.listen.port, config.listen.address);
-server.enable("jsonp callback");
 
 var serverList = config.serverList;
 var serverKeySlot = {};
