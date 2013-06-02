@@ -130,7 +130,7 @@
     if (!userInfo) {
       document.location.hash = '#join'
       $.get('http://gchat.in:8001/chatroom/' + chatRoomId, function (body) {
-        $('#onlinePeople').html('Online users: ' + body.members.join(', '));
+        $('#onlinePeople').html('Total ' + body.members.length + ' users now in this chatroom: ' + body.members.join(', '));
         $('.chatRoomTitle').html(body.title);
         $.mobile.initializePage();
       });
