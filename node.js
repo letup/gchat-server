@@ -84,7 +84,7 @@ app.get('/chatroom/:roomId/messages' , function(req, res) {
       var messageId = startRange;
       var chats = result.map(function(item) { 
          var message = JSON.parse(item); 
-         message.newid = messageId + 1;
+         message.id = messageId + 1;
          messageId++;
          return message;
        });
