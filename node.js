@@ -86,6 +86,7 @@ app.get('/chatroom/:roomId/messages' , function(req, res) {
          var message = JSON.parse(item); 
          message.newid = messageId + 1;
          messageId++;
+         return message;
        });
       res.jsonp({chats: chats}, 200);
     });
