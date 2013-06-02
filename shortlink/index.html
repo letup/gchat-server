@@ -142,9 +142,7 @@
       });
     }
   });
-
 </script>
-<!-- Home -->
 <div data-role="page" id="join">
     <div data-theme="a" data-role="header">
         <h3 class="chatRoomTitle"></h3>
@@ -170,9 +168,6 @@
     </div>
 </div>
 <script>
-  var scrollToBottom = function () {
-    $(window).scrollTop($(document).height());
-  }
   $('#chatbox').keypress(function(e) {
     if (e.charCode === 13 && socketClient) {
       var text = $(this).val();
@@ -189,8 +184,9 @@
       $(this).val('');
     }
   });
-  var is_uiwebview = /(iPhone|iPod|iPad).*AppleWebKit/i.test(navigator.userAgent);
-  if (is_uiwebview) {
+  
+  var isUIWebView = /(iPhone|iPod|iPad).*AppleWebKit/i.test(navigator.userAgent);
+  if (isUIWebView) {
     var footer = $('#footer');
     $('#chatbox').focus(function () {
       footer.css('position', 'absolute');
@@ -199,6 +195,9 @@
     });
   }
   
+  var scrollToBottom = function () {
+    $(window).scrollTop($(document).height());
+  }
   $(document).on('pageshow', scrollToBottom);
   $(document).on('pageload', scrollToBottom);
 </script>
