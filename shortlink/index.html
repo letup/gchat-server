@@ -119,7 +119,7 @@
             $.mobile.changePage($('#chat'));
           });
         },
-        error: Function(jqXHR) {
+        error: function (jqXHR) {
           if (jqXHR.status === 409) {
             alert("This nickname has already been used!");
           }
