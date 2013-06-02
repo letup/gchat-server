@@ -136,30 +136,32 @@ app.post('/chatroom/:roomId/members', function(req, res) {
   });
 });
 
-app.get('/chatroom/:roomId' , function(req, res) {
+app.get('/chatroom/:roomId', function(req, res) {
   var roomId = req.params.roomId;
-  redisClient.hmget('ChatRoom.' + roomId, ['createDate', 'title', 'serverAddress'], function(error, result) {
-    if (result.length === 0) {
+
+  redisClient.exists('ChatRoom.' + roomId, function(error, exist) {
+    if (!exist) {
       log.info(util.format('Room "%s" does not exist!', roomId));
       res.json({}, 404);
       return;
-    } else {
-      redisClient.smembers('ChatRoom.Members.' + roomId, function(error, members) {
-        var serverAddress = result[2];
-        var createDate = result[0] - 0;
-        var title = result[1];
-        res.json({
-          roomId: roomId,
-          shortlink: 'http://gchat.in/' + roomId,
-          members: members,
-          createDate: createDate,
-          serverAddress: serverAddress,
-          title: title
+      redisClient.hmget('ChatRoom.' + roomId, ['createDate', 'title', 'serverAddress'], function(error, result) {
+        redisClient.smembers('ChatRoom.Members.' + roomId, function(error, members) {
+          var serverAddress = result[2];
+          var createDate = result[0] - 0;
+          var title = result[1];
+          res.json({
+            roomId: roomId,
+            shortlink: 'http://gchat.in/' + roomId,
+            members: members,
+            createDate: createDate,
+            serverAddress: serverAddress,
+            title: title
+          });
         });
       });
-    }
+    });
   });
-});
+
 
 redisClient.on("error", function(err) {
   log.error("Redis client error: " + err);
