@@ -16,6 +16,14 @@ var redisClient = require('redis')
 redisClient.select(config.redis.databaseId);
 
 app.use(express.bodyParser());
+app.use(function(req,res,next){
+  res.header('Cache-Control', 'foo bar baz');
+  res.header('Access-Control-Allow-Origin', 'http://foo.com');
+  res.header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'X-PINGOTHER');
+  res.header('Access-Control-Max-Age', '1728000');
+  next()
+});
 server.listen(config.listen.port, config.listen.address);
 
 var serverList = config.serverList;
