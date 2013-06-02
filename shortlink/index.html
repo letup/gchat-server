@@ -27,7 +27,7 @@
 <body>
 <script>
   var userInfo;
-  var chatRoomId = location.pathname;
+  var chatRoomId = location.pathname.slice(1);
   console.log('Room ID: ' + chatRoomId);
   var socketClient;
 
