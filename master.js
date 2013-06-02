@@ -73,7 +73,7 @@ app.post('/chatroom', function(req, res) {
   var createDate = Date.now() / 1000 | 0;
 
   if (!nickname || !title) {
-    res.json({}, 400);
+    res.jsonp({}, 400);
     return;
   }
 
@@ -88,7 +88,7 @@ app.post('/chatroom', function(req, res) {
     redisClient.hmset('ChatRoom.' + id, newRoomInfo, function() {
       redisClient.sadd('ChatRoom.Members.' + id, nickname, function() {
         var joinActionString = util.format("JOINROOM:%s|%s", id, nickname);
-        res.json({
+        res.jsonp({
           roomId: id,
           shortlink: 'http://gchat.in/' + id,
           signature: signature(serverAddress, joinActionString),
@@ -107,27 +107,27 @@ app.post('/chatroom/:roomId/members', function(req, res) {
   log.info(util.format('User "%s" request to join room "%s"', nickname, roomId));
 
   if (!nickname) {
-    res.json({}, 400);
+    res.jsonp({}, 400);
     return;
   }
 
   redisClient.exists('ChatRoom.' + roomId, function(error, exist) {
     if (!exist) {
       log.info(util.format('Room "%s" does not exist!', roomId));
-      res.json({}, 404);
+      res.jsonp({}, 404);
       return;
     } else {
       redisClient.sadd('ChatRoom.Members.' + roomId, nickname, function(error, nonexist) {
         if (!nonexist) {
           log.warning(util.format('User "%s" already in room "%s", reject.', nickname, roomId));
-          res.json({}, 409);
+          res.jsonp({}, 409);
         } else {
           redisClient.hmget('ChatRoom.' + roomId, ['createDate', 'title', 'serverAddress'], function(error, result) {
             var joinActionString = util.format('JOINROOM:%s|%s', roomId, nickname);
             var serverAddress = result[2];
             var createDate = result[0] - 0;
             var title = result[1];
-            res.json({
+            res.jsonp({
               roomId: roomId,
               shortlink: 'http://gchat.in/' + roomId,
               signature: signature(serverAddress, joinActionString),
@@ -148,7 +148,7 @@ app.get('/chatroom/:roomId', function(req, res) {
   redisClient.exists('ChatRoom.' + roomId, function(error, exist) {
     if (!exist) {
       log.info(util.format('Room "%s" does not exist!', roomId));
-      res.json({}, 404);
+      res.jsonp({}, 404);
       return;
     }
     redisClient.hmget('ChatRoom.' + roomId, ['createDate', 'title', 'serverAddress'], function(error, result) {
@@ -156,7 +156,7 @@ app.get('/chatroom/:roomId', function(req, res) {
         var serverAddress = result[2];
         var createDate = result[0] - 0;
         var title = result[1];
-        res.json({
+        res.jsonp({
           roomId: roomId,
           shortlink: 'http://gchat.in/' + roomId,
           members: members,
@@ -176,5 +176,5 @@ redisClient.on("error", function(err) {
 });
 
 app.get('/', function(req, res) {
-  res.json({}, 200);
+  res.jsonp({}, 200);
 });

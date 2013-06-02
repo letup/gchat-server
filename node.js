@@ -43,7 +43,7 @@ app.get('/chatroom/:roomId/messages' , function(req, res) {
   
   redisClient.sismember('ChatRoom.IDs', roomId, function(error, exist) {
     if (!exist) {
-      res.json({}, 404);
+      res.jsonp({}, 404);
       return;
     }
   
@@ -56,7 +56,7 @@ app.get('/chatroom/:roomId/messages' , function(req, res) {
     
     if (!isNaN(startID) && !isNaN(endID)) {
       if (endID - startID < 0) {
-        res.json({}, 400);
+        res.jsonp({}, 400);
       }
       startRange = startID;
       endRange = endID - 1;
@@ -82,7 +82,7 @@ app.get('/chatroom/:roomId/messages' , function(req, res) {
     
     redisClient.lrange('ChatRoom.Messages.' + roomId, startRange, endRange, function(error, result) {
       var chats = result.map(function(item) { return JSON.parse(item); });
-      res.json({chats: chats}, 200);
+      res.jsonp({chats: chats}, 200);
     });
   });
 });
@@ -152,7 +152,7 @@ io.sockets.on('connection', function(socket) {
 });
 
 app.get('/', function(req, res) {
-  res.json({}, 200);
+  res.jsonp({}, 200);
 });
 
 redisClient.on("error", function(err) {
