@@ -139,7 +139,7 @@ app.post('/chatroom/:roomId/members', function(req, res) {
 app.get('/chatroom/:roomId' , function(req, res) {
   var roomId = req.params.roomId;
   redisClient.hmget('ChatRoom.' + roomId, ['createDate', 'title', 'serverAddress'], function(error, result) {
-    if (!exist) {
+    if (!result) {
       log.info(util.format('Room "%s" does not exist!', roomId));
       res.json({}, 404);
       return;
