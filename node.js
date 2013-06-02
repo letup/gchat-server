@@ -107,6 +107,8 @@ io.set('authorization', function(handshakeData, callback){
     return;
 	}
   
+  log.info(util.format('User "%s" is trying to join room "%s"'), nickname, roomId));
+  
   var joinActionString = util.format('JOINROOM:%s|%s', roomId, nickname);
   var verifyResult = verifySignature(joinActionString, signature);
   
@@ -131,7 +133,7 @@ io.sockets.on('connection', function(socket) {
         expectMessageID += 1;
         var data = {
           body: msg.body,
-          time: now,
+          time: now,  
           senderName: nickname,
           type: 'chat',
           id: expectMessageID
