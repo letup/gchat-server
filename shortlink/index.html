@@ -102,6 +102,7 @@
     $('#join [data-role=button]').click(function () {
       var nickname = $('#nickname').val();
       $.post('http://gchat.in:8001/chatroom/' + chatRoomId + '/members', {nickname: nickname}, function (body, textStatus, jqXHR) {
+        console.log(jqXHR);
         if (jqXHR.status === 409) {
           alert("This nickname has already been used!");
           return;
