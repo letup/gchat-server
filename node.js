@@ -107,7 +107,7 @@ io.set('authorization', function(handshakeData, callback){
     return;
 	}
   
-  log.info(util.format('User "%s" is trying to join room "%s"'), nickname, roomId));
+  log.info(util.format('User "%s" is trying to join room "%s"', nickname, roomId));
   
   var joinActionString = util.format('JOINROOM:%s|%s', roomId, nickname);
   var verifyResult = verifySignature(joinActionString, signature);
