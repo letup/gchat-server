@@ -101,7 +101,9 @@
     
     $('#join [data-role=button]').click(function () {
       var nickname = $('#nickname').val();
-      $.post('http://gchat.in:8001/chatroom/' + chatRoomId + '/members', {nickname: nickname}, function (body) {
+      $.post('http://gchat.in:8001/chatroom/' + chatRoomId + '/members', {nickname: nickname}, function (body, textStatus) {
+        console.log(textStatus);
+        
         userInfo = {
           nickname: nickname,
           signature: body.signature,
@@ -123,9 +125,7 @@
       });
     } else {
       $('.chatRoomTitle').html(userInfo.title);
-      if (!document.location.hash) {
-        document.location.hash = '#chat'
-      }
+      document.location.hash = '#chat'
       getChatList(0, function() {
         $.mobile.initializePage();
       });
