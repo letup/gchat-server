@@ -22,6 +22,7 @@ redisClient.select(config.redis.databaseId);
 
 app.use(express.bodyParser());
 server.listen(config.listen.port, config.listen.address);
+server.enable("jsonp callback");
 
 var serverAddress = config.serverAddress;
 var publicKey;
