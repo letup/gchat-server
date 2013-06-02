@@ -101,24 +101,29 @@
     
     $('#join [data-role=button]').click(function () {
       var nickname = $('#nickname').val();
-      $.post('http://gchat.in:8001/chatroom/' + chatRoomId + '/members', {nickname: nickname}, function (body, textStatus, jqXHR) {
-        console.log(jqXHR);
-        if (jqXHR.status === 409) {
-          alert("This nickname has already been used!");
-          return;
+      
+      $.ajax({
+        type: "POST",
+        url: 'http://gchat.in:8001/chatroom/' + chatRoomId + '/members',
+        data: {nickname: nickname},
+        success: function (body, textStatus, jqXHR) {
+          userInfo = {
+            nickname: nickname,
+            signature: body.signature,
+            serverAddress: body.serverAddress,
+            title: body.title
+          };
+        
+          $.cookie('room|' + chatRoomId, userInfo, {expires: 365});
+          getChatList(0 ,function() {
+            $.mobile.changePage($('#chat'));
+          });
+        },
+        error: Function(jqXHR) {
+          if (jqXHR.status === 409) {
+            alert("This nickname has already been used!");
+          }
         }
-        
-        userInfo = {
-          nickname: nickname,
-          signature: body.signature,
-          serverAddress: body.serverAddress,
-          title: body.title
-        };
-        
-        $.cookie('room|' + chatRoomId, userInfo, {expires: 365});
-        getChatList(0 ,function() {
-          $.mobile.changePage($('#chat'));
-        });
       });
     });
 
