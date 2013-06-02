@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <link rel="apple-touch-icon-precomposed" sizes="114x114" href="Icon@2x.png" />
+  <link rel="apple-touch-icon-precomposed" sizes="57x57" href="Icon.png" />
+  <title></title>
+  <link rel="stylesheet" href="./jm.css">
+  <link rel="stylesheet" href="./custom.css">
+  <!-- Extra Codiqa features -->
+  <link rel="stylesheet" href="./codiqa.ext.css">
+  <!-- jQuery and jQuery Mobile -->
+  <script src="./jquery.min.js"></script>
+  <script>
+    $(document).on('mobileinit', function () {
+      $.mobile.autoInitializePage = false;
+    })
+  </script>
+  <script src="./jquery.mobile.min.js"></script>
+  <script src="./jquery.cookie.js"></script>
+  <script src="./codiqa.ext.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+<script>
+  var userInfo;
+  var chatRoomId = location.pathname;
+  console.log('Room ID: ' + chatRoomId);
+  var socketClient;
+
+  var chats = [];
+  
+  function lastMessageId() {
+    if (chats.length === 0) {
+      return 0;
+    } else {
+      var lastChat = chats[chats.length - 1];
+      return lastChat.id;
+    }
+  }
+  
+  function addChat(chat, scroll) {
+    if (chats.length != 0) {
+      var expectId = lastMessageId() + 1;
+      if (chat.id != expectId) {
+        console.log('WARNING: Expect message id ' + expectId + ', real id ' + chat.id);
+        return false;
+      }
+    }
+    
+    chats.push(chat);
+    if (chat.senderName === userInfo.nickname) {
+      $('<li class="sent-me"><span class="body">' + (chat.body || '&nbsp;') + '</span><span class="name">' + chat.senderName + '</span></li><div style="clear:both"></div>').appendTo('#chatList');
+    } else {
+      $('<li><span class="body">' + (chat.body || '&nbsp;') + '</span><span class="name">' + chat.senderName + '</span></li><div style="clear:both"></div>').appendTo('#chatList');
+    }
+    
+    scroll && $(window).scrollTop($(document).height());
+    
+    return true;
+  }
+
+  function connectSocket() {
+    socketClient = io.connect('http://' + userInfo.serverAddress + '?roomId=' + chatRoomId + '&nickname=' + userInfo.nickname + '&signature=' + encodeURIComponent(userInfo.signature), {
+      'reconnect': true,
+      'reconnection delay': 5000,
+      'max reconnection attempts': 20
+    });
+    socketClient.on('chat message', function (chat) {
+      var success = addChat(chat, true);
+      if (!success) {
+        getChatList(lastMessageId());
+      }
+    });
+    socketClient.on('disconnect', function () {
+      console.log('Socket.IO disconnect.')
+    });
+    socketClient.on('connect', function () {
+      console.log('Socket.IO connect.')
+    });
+  }
+
+  function getChatList(startId, callback) {
+    var url = 'http://' + userInfo.serverAddress + '/chatroom/' + chatRoomId + '/messages';
+    startId && (url = url + '/startID=' + startId);
+    jsonp(url, function (body) {
+      body.chats.forEach(function (chat) {
+        addChat(chat);
+      });
+      if (callback) {
+        callback();
+      }
+    });
+    connectSocket();
+  }
+
+  function loadUserInfo() {
+    userInfo = {
+      nickname: $.cookie('nickname' + chatRoomId),
+      signature: $.cookie('signature' + chatRoomId),
+      serverAddress: $.cookie('serverAddress' + chatRoomId),
+      title: $.cookie('title' + chatRoomId)
+    };
+  }
+
+  $(function () {
+    loadUserInfo();
+
+    $('#join [data-role=button]').click(function () {
+      var nickname = $('#nickname').val();
+      $.post('http://gchat.in:8001/chatroom/' + chatRoomId + '/members', {nickname: nickname}, function (body) {
+        $.cookie('signature' + chatRoomId, body.signature, {expires: 10000});
+        $.cookie('serverAddress' + chatRoomId, body.serverAddress, {expires: 10000});
+        $.cookie('title' + chatRoomId, body.title, {expires: 10000});
+        $.cookie('nickname' + chatRoomId, nickname, {expires: 10000});
+
+        loadUserInfo();
+        getChatList();
+      });
+    });
+
+    if (!userInfo.nickname) {
+      $.get('http://gchat.in:8001/chatroom/' + chatRoomId, function (body) {
+        $('#onlinePeople').html('Online users: ' + body.members.join(', '));
+        $('.chatRoomTitle').html(body.title);
+        $.mobile.initializePage();
+      });
+      document.location.hash = '#join'
+    } else {
+      $('.chatRoomTitle').html(userInfo.title);
+      document.location.hash = '#chat'
+      getChatList(0, function() {
+        $.mobile.initializePage();
+      });
+    }
+  });
+
+</script>
+<!-- Home -->
+<div data-role="page" id="join">
+    <div data-theme="a" data-role="header">
+        <h3 class="chatRoomTitle"></h3>
+    </div>
+    <div data-role="content">
+        <p id="onlinePeople"></p>
+        <input id="nickname" placeholder="Your nickname" value="" type="text" />
+        <a data-role="button" href="#chat">
+          Join
+        </a>
+    </div>
+</div>
+<div data-role="page" id="chat">
+    <div data-theme="a" data-role="header">
+       <h3 class="chatRoomTitle"></h3>
+    </div>
+    <div data-role="content">
+      <ul id="chatList">
+      </ul>
+    </div>
+    <div id="footer" data-theme="a" data-role="footer" data-tap-toggle="false" data-position="fixed">
+      <input id="chatbox" type="text" />
+    </div>
+</div>
+<script>
+  var scrollToBottom = function () {
+    $(window).scrollTop($(document).height());
+  }
+  $('#chatbox').keypress(function(e) {
+    if (e.charCode === 13 && socketClient) {
+      var text = $(this).val();
+      socketClient.emit('chat message', {body: text}, function(result){
+        var success= addChat({
+          senderName: userInfo.nickname,
+          body: text,
+          id: result
+        }, true);
+        if (!success) {
+          getChatList(lastMessageId());
+        }
+      });
+      $(this).val('');
+    }
+  });
+  var is_uiwebview = /(iPhone|iPod|iPad).*AppleWebKit/i.test(navigator.userAgent);
+  if (is_uiwebview) {
+    var footer = $('#footer');
+    $('#chatbox').focus(function () {
+      footer.css('position', 'absolute');
+    }).blur(function () {
+      footer.css('position', 'fixed');
+    });
+  }
+  
+  $(document).on('pageshow', scrollToBottom);
+  $(document).on('pageload', scrollToBottom);
+</script>
+</body>
+</html>

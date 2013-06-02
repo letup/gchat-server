@@ -1,0 +1,34 @@
+#chatList {
+  list-style: none;
+  padding: 0;
+}
+
+#chatList li {
+  margin-bottom: 10px;
+}
+
+#chatList li.sent-me {
+  float: right;
+}
+
+#chatList li.sent-me .name {
+  text-align: right;
+}
+
+#chatList li.sent-me .body {
+  background-color: #9ed5ff;
+}
+
+#chatList li .body {
+  display: inline-block;
+  background-color: #ddd;
+  -webkit-border-radius: 8px;
+  border-radius: 8px;
+  padding: 5px 8px;
+}
+
+#chatList li .name {
+  display: block;
+  font-size: 12px;
+  padding-left: 7px;
+}

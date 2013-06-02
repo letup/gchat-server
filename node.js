@@ -143,7 +143,9 @@ io.sockets.on('connection', function(socket) {
             info.error(util.format('New message ID is %d, message count is %d, conflict!', expectMessageID, count));
           }
           log.info('Room "' + roomId + '" now has ' + count + ' messages.');
-          callback(count);
+          if (callback) {
+            callback(count);
+          }
 
           socket.broadcast.to(roomId)
             .emit('chat message', data);

@@ -17,7 +17,7 @@ redisClient.select(config.redis.databaseId);
 
 app.use(express.bodyParser());
 app.use(function(req,res,next){
-  res.header('Access-Control-Allow-Origin', 'http://foo.com');
+  res.header('Access-Control-Allow-Origin', 'http://gchat.in');
   res.header('Access-Control-Allow-Methods', 'POST, GET');
   next()
 });
