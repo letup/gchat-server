@@ -37,7 +37,7 @@ try {
   log.warning(util.format('Cannot load public key for node server "%s"', serverAddress));
 }
 
-app.get('/chatroom/:roomId' , function(req, res) {
+app.get('/chatroom/:roomId/messages' , function(req, res) {
   var roomId = req.params.roomId;
   
   redisClient.sismember('ChatRoom.IDs', roomId, function(error, exist) {
