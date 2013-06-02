@@ -101,10 +101,11 @@
     
     $('#join [data-role=button]').click(function () {
       var nickname = $('#nickname').val();
-      $.post('http://gchat.in:8001/chatroom/' + chatRoomId + '/members', {nickname: nickname}, function (body, textStatus, c) {
-        console.log(body);
-        console.log(textStatus);
-        console.log(c);
+      $.post('http://gchat.in:8001/chatroom/' + chatRoomId + '/members', {nickname: nickname}, function (body, textStatus, jqXHR) {
+        if (jqXHR.status === 409) {
+          alert("This nickname has already been used!");
+          return;
+        }
         
         userInfo = {
           nickname: nickname,
@@ -114,7 +115,9 @@
         };
         
         $.cookie('room|' + chatRoomId, userInfo, {expires: 365});
-        getChatList(0);
+        getChatList(0 ,function() {
+          $.mobile.changePage('chat');
+        });
       });
     });
 
@@ -143,7 +146,7 @@
     <div data-role="content">
         <p id="onlinePeople"></p>
         <input id="nickname" placeholder="Your nickname" value="" type="text" />
-        <a data-role="button" href="#chat">
+        <a data-role="button">
           Join
         </a>
     </div>
