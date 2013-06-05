@@ -48,8 +48,13 @@ app.get('/chatroom/:roomId/messages' , function(req, res) {
     }
   
     var count = parseInt(req.query.count, 10);
-    var startID = parseInt(req.query.startID, 10);
-    var endID = parseInt(req.query.endID, 10);
+    var startID = parseInt(req.query.startID, 10) - 1;
+    var endID = parseInt(req.query.endID, 10) - 1;
+    
+    if ((!isNaN(startID) && startID <= 0)||(!isNaN(endID) && endID <= 0)) {
+      res.jsonp({}, 400);
+      return;
+    }
     
     var startRange;
     var endRange;
